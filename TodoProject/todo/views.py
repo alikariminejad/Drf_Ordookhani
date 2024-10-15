@@ -20,3 +20,25 @@ def all_todos(request: Request):
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
     else:
         return Response(None, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET', 'PUT', 'DELETE'])
+def todo_detail_view(request: Request, todo_id):
+    try:
+        todo: Todo = Todo.objects.get(pk=todo_id)
+    except Todo.DoesNotExist:
+        return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = TodoSerializer(todo)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == 'PUT':
+        serializer = TodoSerializer(todo, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        todo.delete()
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
