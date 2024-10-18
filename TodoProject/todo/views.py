@@ -1,3 +1,4 @@
+from msilib import CreateRecord
 from django.shortcuts import render
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -6,6 +7,7 @@ from .serializers import TodoSerializer
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
+from rest_framework import generics, mixins
 
 
 
@@ -95,3 +97,28 @@ class TodosDetailApiView(APIView):
         todo.delete()
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 # endregion End of region
+
+# region mixins
+class TodosListMixinAPIView(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView ):
+    queryset = Todo.objects.order_by('priority').all()
+    serializer_class = TodoSerializer
+    
+    def get(self, request: Request):
+        return self.list(request)
+    
+    def post(self, request: Request):
+        return self.create(request)
+
+class TodosDetailMixinAPIView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Todo.objects.order_by('priority').all()
+    serializer_class = TodoSerializer
+    
+    def get(self, request: Request, pk):
+        return self.retrieve(request, pk)
+    
+    def put(self, request: Request, pk):
+        return self.update(request, pk)
+    
+    def delete(self, request: Request, pk):
+        return self.destroy(request, pk)
+# endregion
